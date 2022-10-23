@@ -1,0 +1,328 @@
+---
+title: "TP2_LACHEHEB"
+author: "Mohamed Salah LACHEHEB"
+date: "2022-10-20"
+output: html_document
+---
+
+## Importation de jeux de données :
+**Exercice 1:**\
+1
+```{r importation}
+#Importation des données à partir du fichier statlab.txt
+df=scan("statlab.txt")
+df=matrix(df,ncol=19,byrow=T)
+
+#Conversion en dataframe
+df=data.frame(df)
+
+# Gérer les noms des variables
+varname=c("sexenf","gsenf","tenf_n","penf_n", "tenf_10","penf_10",
+"gsmere","agem_n","pmere_n","consm_n","tmere",
+"pmere_10", "consm_10","agep_n", "consp_n","tpere","ppere_10",
+"revf_n","revf_10")
+colnames(df)=varname
+
+#Afficher les 5 premiere lignes pour voir à quoi ressemble notre DF
+df[1:5,]
+```
+
+#### 2 \
+2.1
+```{r convertion}
+
+# Convertion des tailles en cm
+df$tenf_n = 2.54 * df$tenf_n
+df$tenf_10 = 2.54 * df$tenf_10
+df$tmere = 2.54 * df$tmere
+df$tpere = 2.54 * df$tpere
+
+# Convertion des poids en kg
+df$penf_n = 0.454 * df$penf_n
+df$penf_10 = 0.454 * df$penf_10
+df$pmere_n = 0.454 * df$pmere_n
+df$pmere_10 = 0.454 * df$pmere_10
+df$ppere_10 = 0.454 * df$ppere_10
+
+
+#Afficher les 5 premiere lignes pour voir à quoi ressemble notre DF
+df[1:5,]
+```
+
+2.2 Codage sexe:
+```{r sexe}
+df$sexenf[df$sexenf == 1] = "garcon"
+df$sexenf[df$sexenf == 2] = "fille"
+
+#Afficher les 5 premiere lignes pour voir à quoi ressemble notre DF
+df[1:5,]
+```
+
+2.3 Consommation de cigarettes:
+```{r cons cigarette}
+
+csCig=c('nonfum','1a2cig','3a10cig','10a20cig','+de20cig','inc')
+
+# Consommation 
+
+for(i in 1:length(csCig)){
+df$consm_n[df$consm_n==i]=csCig[i]
+df$consm_10[df$consm_10 == i] = csCig[i]
+df$consp_n[df$consp_n==i]=csCig[i]
+}
+
+
+#Afficher les 5 premiere lignes pour voir à quoi ressemble notre DF
+df[1:5,]
+
+```
+
+2.4 LEs variables qualitatives
+```{r var_qual}
+
+str (df$sexenf)
+is.character(df$sexenf)
+is.factor( df$sexenf )
+summary(df$sexenf)
+```
+- Dans ce cas R consider sexenf comme caractère donc on doit le convertir en factor pour que R le consider comme une variable qualitative
+
+a.
+```{r var_qual1}
+df$sexenf = factor(df$sexenf)
+is.factor(df$sexenf)
+str (df$sexenf)
+summary(df$sexenf)
+
+```
+- Dans ce cas R considere sexenf comme une variables Qualitative qui peut prendre deux valeur : "fille" ou "garcon"
+
+b.
+```{r var_qual2}
+var_qual = c(2, 7, 10, 13 ,15) # le 1 on l'a deja fait
+
+for( i in var_qual){
+  df[,i] = factor(df[,i])
+}
+summary(df[,var_qual])
+quali=df[,var_qual]
+```
+
+2.5 Par défaut le nombre max des variables qualitatives autorisé par R = 7 c'est pour cela que pour la variable gsenf il afficher other donc dans cette partie on va lui autoriser jusqu'à 10 variables
+```{r resumé}
+summary(df)
+
+summary(df, maxsum = 10)
+```
+- Et maintenant on peut remarqué que toutes les valeurs de $gsenf
+
+#### 2.2 Echantillonnage:
+```{r echantillonnage}
+set.seed(6)
+
+n0 = 102
+n_lignes = nrow(df)
+# tirage sans remise de 102 lignes au hazard parmi les lignes initiales
+n2 = sample(1: n_lignes, n0, replace = F) 
+
+# Choisir les données de l'echantillon depuis le df
+df = df[n2,]
+
+#Afficher les 5 premiere lignes pour voir à quoi ressemble notre DF
+df[1:5,]
+```
+
+## 3. Analyse univariée des variables quantitavies:
+
+**Exercice 2:**
+
+1.
+```{r}
+summary(df)
+```
+
+**Exercice 3:**\
+Dans cette partie on va disperser les variables quantitatives des variables qualitatives:
+```{r}
+quanti=df[,-c(1,2,7,10,13,15)]
+quali=df[,c(1,2,7,10,13,15)]
+```
+**Exercice 4:**
+
+```{r}
+# Afficher la moyenne des variables quantitavies
+apply(quanti, 2, mean)
+```
+- Quelques interprétations: depuis les stats reçues on pourra dire que :
+  * La taille d'un enfant à son naissance = 51.95 cm en moyenne
+  * Le poids d'un enfant à son naissance = 3.41 kg en moyenne
+  * Les revenues familliale à la naissance de l'enfant en moyenne = 76.74
+
+<br><br>
+- Donne le 1ér décile :
+<br>
+  * Pour toute variables : 10% de la population ont une valeur inferieur a ce qui va être afficher 
+```{r}
+apply(quanti, 2, function(x)quantile(x,0.1))
+```
+
+<br>
+- Donner le 1er décile et le 9eme décile :
+  <br>
+  * Pour toute variables : 10% ont une valeur inferieur au premier decile 
+  <br>
+  * Pour toute variables :  90% ont une valeur inferieur au neuvieme decile 
+```{r}
+apply(quanti,2,function(x)quantile(x, probs=c(0.1, 0.9)))
+```
+
+<br>
+-  Pour toute variables : Donner le 1er, 4eme, 7eme et le 10eme décile
+```{r}
+apply(quanti, 2,function(x)quantile(x, probs=seq(0.1, by=0.3)))
+```
+
+2. Caracteristique de dispersion
+<br><br>
+- Cette methode va nous permetre d'afficher l'écart-type et la moyenne respectivement pour chaque variables quantitatives de notre df
+```{r}
+ecart_type = apply(quanti, 2, sd)
+ecart_type
+moyenne = apply(quanti, 2, mean)
+moyenne
+```
+<br>
+- Le coefficient de variation
+```{r}
+CVx = ecart_type / moyenne
+CVx
+```
+
+```{r, echo=F}
+#Boite à moustache de la variable df$penf_n
+boxplot(df$penf_n, horizontal = T, xlab="poids_enfant_naissance", col = "red")
+
+# Ajouter le titre pour que le graph soit explicatif
+title(main = "poids de l'enfant à la naissance")
+
+#Histogramme de la variable df$penf_n
+hist(df$penf_n, prob = T, col="orange")
+
+# Rajouter la ligne de densité avec la couleur rouge
+lines(density(df$penf_n), col = "blue")
+```
+_*Interpretations*_ : \
+  - Depuis le boxplot on peut voir que 25% des enfants pèsent moins de 2,9 KG à leurs naissances, 75% ont moins de 5 KG et 50% ont plus ou moins de 3,4 KG, la distribution est symetrique.
+<br>
+  - Depuis l'Hisogramme on peut dire que la distribution est unimodale, mode = 3,5 kg \
+<br>
+**2ème variables : "tenf_n"**
+
+```{r, echo = FALSE}
+boxplot(df$tenf_n, horizontal = T, xlab="taille_enfant_naissance", col = "red")
+
+title(main = "taille de l'enfant à la naissance")
+
+hist(df$tenf_n, prob = T, col = "blue")
+
+lines(density(df$tenf_n), col = "red")
+```
+_*Interpretations*_ : <br>
+* Depuis le boxplot on peut voir que 25% des enfants mesure moins de 50,5 cm à leurs naissances, 75% ont moins de 53,3 cm et 50% ont plus ou moins de 51,95 cm, comme on peut bien remarqué qu'il y'a plusieurs valeurs extremes des deux cotés, la distribution est symétrique.
+<br>
+* Depuis l'Hisogramme on peut dire que la distribution est bimodale tel que mode1 = 50,6 et mode2 = 54
+
+<br>
+**3ème variables : "agem_n"**
+
+```{r, echo = FALSE}
+boxplot(df$agem_n, horizontal = T, xlab="age_mère_naissance", col = "red")
+
+title(main = "age de la mère de l'enfant à la naissance")
+
+hist(df$agem_n, prob = T, col = "blue")
+
+lines(density(df$agem_n), col = "red")
+```
+*Interpretations* : <br>
+* Depuis le boxplot on peut voir que 25% des mères sont agée de 24 ans à la naissance, 75% ont moins de 32,5 ans et 50% ont plus ou moins de 26 ans, la distribution est non symétrique.
+<br>
+* Depuis l'Hisogramme on peut dire que la distribution est unimodale tel que le mode = 25 ans
+
+<br>
+**4ème variables : "agep_n"**
+
+```{r, echo = FALSE}
+boxplot(df$agep_n, horizontal = T, xlab="age_père_naissance", col = "red")
+
+title(main = "L'age du père de l'enfant à la naissance")
+
+hist(df$agep_n, prob = T, col = "blue")
+
+lines(density(df$agep_n), col = "red")
+```
+*Interpretations* : <br>
+* Depuis le boxplot on peut voir que moins de 25% pères ont agés de 26 ans à la naissance de l'enfant , 75% ont moins de 35 ans et 50% ont plus ou moins de 29 ans, et la disribution est non symétrique.
+<br>
+* Depuis l'Hisogramme on peut dire que la distribution est bimodale 1er mode = 26ans, 2eme mode = 35
+
+
+## 4. Analyse univariées des variables qualitatives
+<br>
+<u>Les caractéristiques numériques </U>:
+```{r}
+# Effectif de la variable sexe enfant
+summary(df$sexenf) 
+
+# les effectids de toutes les variables qualitatives
+summary(quali,maxsum=9)
+
+# Les proportions
+proportions = table(df$sexenf)/nrow(df) 
+proportions
+```
+<br>
+##Des graphiques
+```{r, echo = F}
+x = table(df$sexenf)
+pie(x, col = rainbow(length(x)))
+title(main = "genre de l'enfant")
+
+barplot(table(df$sexenf), col=c("red", "green"))
+title(main="genre de l'enfant")
+
+```
+*Interpretations* :\
+Dans l'echantillon sur lequel on travail on peut remarqué qu'on a 60% des données concernent les garçons et 40% concerne les filles
+<br>
+**Exercice 6:**
+<br> 
+* Consomation de cigarette par la mère 10 ans aprés la naissance
+```{r, echo = F}
+x = table(df$consm_10)
+# gestion des labels pour qu'ils soient plus compréhensibles
+labels = c("cig>20", "10<= cig <= 20", "1<= cig <=2", "3<= cig <=10", "no cigarette")
+pie(x, labels, col = rainbow(length(x))) # avec une gestion de couleurs
+title(main = "Consomation des cigarettes de la part de la mère 10 ans après")
+
+barplot(table(df$consm_10), col=c("blue", "red", "green", "purple", "orange"))
+title(main = "Consomation des cigarettes de la part de la mère 10 ans après")
+```
+*Interpretations* :\
+Presque 50% des mères ne fument pas, l'autre pourcentage se partage principalement entre celles qui fument : "entre 1 et 2", "entre 10 et 20" et " plus de 20" cigarettes, une petite population fume "entre 3 et 10" cigarettes.
+
+<br>
+* Consomation de cigarette par le père 10 ans aprés la naissance
+```{r, echo=F}
+x = table(df$consp_n)
+# gestion des labels pour qu'ils soient plus compréhensibles
+labels = c("cig>20", "10<= cig <= 20", "1<= cig <=2", "3<= cig <=10", "no cigarette")
+pie(x, labels,col=rainbow(length(x)))
+title(main = "Consomation des cigarettes de la part du père à la naissance")
+
+barplot(table(df$consp_n), col=c("blue", "red", "green", "purple", "orange"))
+title(main = "Consomation des cigarettes de la part du père à la naissance")
+```
+
+*Interpretations* :\
+Par contre pour les pères, on trouvent qu'un grand nombre fument "entre 10 et 20" cigarettes avec un pourcentage près de 40 %, il se suive par un pourcentage de plus de 30% des non fumeurs.
